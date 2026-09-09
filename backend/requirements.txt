@@ -1,0 +1,11 @@
+# Web framework and server
+fastapi==0.115.*
+uvicorn[standard]==0.30.*
+
+# Database access
+sqlalchemy==2.0.*
+psycopg[binary]==3.2.*
+
+# Settings loaded from environment / .env
+pydantic-settings==2.*
+python-dotenv==1.*
