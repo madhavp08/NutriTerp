@@ -1,0 +1,31 @@
+# Secrets
+.env
+.env.local
+.env*.local
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+*.egg-info/
+
+# ML artifacts and data snapshots (kept local; schemas live in code)
+backend/data/raw/
+backend/data/processed/
+backend/ml/artifacts/
+*.joblib
+*.ubj
+
+# Node / Next.js
+node_modules/
+.next/
+out/
+frontend/.env*
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/

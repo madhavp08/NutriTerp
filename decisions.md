@@ -2,6 +2,16 @@
 
 Short record of choices so the project stays easy to learn. Newer items go at the top.
 
+## 2026-09-09 — PR 1: Scaffold
+
+- Two folders: `backend/` (FastAPI + Python ML) and `frontend/` (Next.js). One repo so one PR can touch both.
+- Backend deps are pinned loosely in `requirements.txt`; a plain `venv` keeps setup obvious (no Poetry/uv to learn on top).
+- `config.py` reads `.env` at the repo root with pydantic-settings, so backend and any scripts share one secrets file.
+- SQLAlchemy 2 with the psycopg3 driver; `pool_pre_ping=True` because Neon suspends idle computes and stale connections must be detected.
+- `/api/health` runs `SELECT 1` so "is the DB reachable" is a one-URL check.
+- Database: Neon project `nutriterp` (aws-us-east-1). Secrets live only in `.env`, which is git-ignored; `.env.example` documents the shape.
+- Each feature branch becomes a PR and is merged right after checks, so `main` always runs and the PR trail stays readable one feature at a time.
+
 ## 2026-09-09 — Locked product choices
 
 - Auth: email + password (bcrypt hash in Postgres). No Google OAuth.
