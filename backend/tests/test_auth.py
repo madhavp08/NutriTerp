@@ -1,39 +1,4 @@
-"""Auth flow tests against an in-memory SQLite database.
-
-The FastAPI dependency `get_session` is overridden so no network or real
-Postgres is involved; the whole signup -> login -> me -> logout loop runs
-in milliseconds. SQLite and Postgres behave the same for this schema.
-"""
-
-import pytest
-from fastapi.testclient import TestClient
-from sqlalchemy import create_engine
-from sqlalchemy.orm import Session
-from sqlalchemy.pool import StaticPool
-
-from app.db import Base, get_session
-from app.main import app
-
-
-@pytest.fixture()
-def client():
-    engine = create_engine(
-        "sqlite://",
-        connect_args={"check_same_thread": False},
-        poolclass=StaticPool,  # one shared in-memory DB across connections
-    )
-    Base.metadata.create_all(engine)
-
-    def override():
-        with Session(engine) as session:
-            yield session
-
-    app.dependency_overrides[get_session] = override
-    # No `with` block: that would run the app lifespan, which does
-    # create_all against the real Postgres. The fixture already made tables.
-    yield TestClient(app)
-    app.dependency_overrides.clear()
-
+"""Auth flow tests. The in-memory DB fixture lives in conftest.py."""
 
 CREDS = {"email": "terp@umd.edu", "password": "correct-horse-battery"}
 

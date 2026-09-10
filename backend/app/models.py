@@ -142,6 +142,53 @@ class UserSession(Base):
     )
 
 
+class Profile(Base):
+    """Questionnaire answers, one row per user.
+
+    Dietary pattern + allergen avoidances are HARD filters (a violating meal
+    is never recommended). Goal and body metrics feed the calorie target.
+    taste_note is free text for the Sentence Transformer rerank later.
+    """
+
+    __tablename__ = "profiles"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), unique=True, index=True)
+
+    # "none" | "vegetarian" | "vegan" | "halal"
+    dietary_pattern: Mapped[str] = mapped_column(String(16), default="none")
+    # Comma-separated subset of ALLERGEN_CHOICES, e.g. "nuts,shellfish".
+    avoid_allergens: Mapped[str] = mapped_column(String(255), default="")
+    avoid_pork: Mapped[bool] = mapped_column(default=False)
+    avoid_alcohol: Mapped[bool] = mapped_column(default=False)
+
+    # "lose" | "maintain" | "gain"
+    goal: Mapped[str] = mapped_column(String(16), default="maintain")
+
+    # Optional body metrics for the Mifflin-St Jeor calorie target.
+    sex: Mapped[str | None] = mapped_column(String(8))  # "male" | "female"
+    age_years: Mapped[int | None]
+    height_cm: Mapped[float | None] = mapped_column(Float)
+    weight_kg: Mapped[float | None] = mapped_column(Float)
+    # "sedentary" | "light" | "moderate" | "active" | "very_active"
+    activity_level: Mapped[str | None] = mapped_column(String(16))
+
+    # Free text like "I love spicy asian food, hate mushrooms" —
+    # embedded and cosine-compared against meal names for reranking.
+    taste_note: Mapped[str | None] = mapped_column(Text)
+
+    updated_at: Mapped[datetime.datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
+
+
+# Allergen icons a user can ask to avoid (matches scraper DIET_FLAGS).
+ALLERGEN_CHOICES = [
+    "dairy", "egg", "fish", "shellfish", "gluten",
+    "soy", "sesame", "nuts", "coconut",
+]
+
+
 class MenuFingerprint(Base):
     """SHA-256 of the sorted offering list for one hall on one date.
 

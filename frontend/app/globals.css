@@ -12,15 +12,12 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
+/* The app is designed light-only for now: every screen uses zinc/red
+   utility colors on light surfaces. Following the OS dark preference
+   here made text invisible, so it is intentionally not honored. */
 
 body {
-  background: var(--background);
+  background: #fafafa; /* zinc-50 */
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
 }

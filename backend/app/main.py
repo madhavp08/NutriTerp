@@ -12,6 +12,7 @@ from sqlalchemy.orm import Session
 
 from .auth import router as auth_router
 from .db import Base, engine, get_session
+from .profile import router as profile_router
 
 
 @asynccontextmanager
@@ -23,6 +24,7 @@ async def lifespan(_: FastAPI):
 
 app = FastAPI(title="NutriTerp API", lifespan=lifespan)
 app.include_router(auth_router)
+app.include_router(profile_router)
 
 
 @app.get("/api/health")
