@@ -109,6 +109,39 @@ class ScrapeRun(Base):
     detail: Mapped[str | None] = mapped_column(Text)
 
 
+class User(Base):
+    """One account. Profile/questionnaire fields arrive in a later feature."""
+
+    __tablename__ = "users"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    email: Mapped[str] = mapped_column(String(255), unique=True, index=True)
+    # bcrypt hash, never the password itself. bcrypt strings are 60 chars.
+    password_hash: Mapped[str] = mapped_column(String(72))
+    created_at: Mapped[datetime.datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
+
+
+class UserSession(Base):
+    """A logged-in browser. The cookie stores only the random token.
+
+    Sessions live in the database (not a JWT) so logging out or deleting a
+    row revokes access immediately, and there is no signing crypto to get
+    wrong. The token is 64 hex chars from a CSPRNG - unguessable.
+    """
+
+    __tablename__ = "user_sessions"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    token: Mapped[str] = mapped_column(String(64), unique=True, index=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    expires_at: Mapped[datetime.datetime] = mapped_column(DateTime(timezone=True))
+    created_at: Mapped[datetime.datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
+
+
 class MenuFingerprint(Base):
     """SHA-256 of the sorted offering list for one hall on one date.
 

@@ -2,6 +2,15 @@
 
 Short record of choices so the project stays easy to learn. Newer items go at the top.
 
+## 2026-09-09 — PR 3: Email/password auth with database sessions
+
+- Passwords are stored as bcrypt hashes (bcrypt salts automatically and is deliberately slow, which blunts brute force). Plain `bcrypt` package, no passlib wrapper.
+- Sessions are rows in `user_sessions`: random 64-hex-char token, 30-day expiry. The browser holds only the token in an HTTP-only, SameSite=Lax cookie. Chose this over JWT because revocation is "delete the row" and there is no signing crypto to misconfigure.
+- Login returns the same 401 for "unknown email" and "wrong password" so the endpoint can't be used to probe which emails have accounts.
+- Next.js rewrites `/api/*` to FastAPI (localhost:8000). One origin in the browser means the cookie just works and there is no CORS setup.
+- Auth tests run on in-memory SQLite via FastAPI dependency override — fast, no network. The `create_all` startup hook is skipped in tests by not using TestClient as a context manager.
+- Verified in a real browser: signup -> logged-in home -> logout -> wrong password rejected with a friendly error -> login works.
+
 ## 2026-09-09 — PR 2 follow-up: empty-allergen parsing bug
 
 - Items with no allergens render "ALLERGENS:" directly followed by the site's legal disclaimer. The regex used `.+?` (one or more), which cannot match an empty list, so it captured the whole disclaimer + footer into the allergens column (512 rows).
