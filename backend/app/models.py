@@ -189,6 +189,25 @@ ALLERGEN_CHOICES = [
 ]
 
 
+class MealFeedback(Base):
+    """Explicit thumbs up / down on a menu item.
+
+    liked=True/False becomes the 1/0 label the rankers train on. One row per
+    (user, item): pressing again overwrites, so opinions can change.
+    """
+
+    __tablename__ = "meal_feedback"
+    __table_args__ = (UniqueConstraint("user_id", "menu_item_id"),)
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    menu_item_id: Mapped[int] = mapped_column(ForeignKey("menu_items.id"), index=True)
+    liked: Mapped[bool]
+    created_at: Mapped[datetime.datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
+    )
+
+
 class MenuFingerprint(Base):
     """SHA-256 of the sorted offering list for one hall on one date.
 

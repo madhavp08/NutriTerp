@@ -30,5 +30,7 @@ def client():
     app.dependency_overrides[get_session] = override
     # No `with` block: that would run the app lifespan, which does
     # create_all against the real Postgres. The fixture already made tables.
-    yield TestClient(app)
+    test_client = TestClient(app)
+    test_client.engine = engine  # so tests can seed data directly
+    yield test_client
     app.dependency_overrides.clear()
