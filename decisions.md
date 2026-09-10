@@ -2,6 +2,17 @@
 
 Short record of choices so the project stays easy to learn. Newer items go at the top.
 
+## 2026-09-09 — PR 5: Suggestions dashboard and feedback
+
+- Recommendation is two separated stages so each can evolve independently: `eligible()` (hard filters — diet, allergens via icon flags AND label text, pork/alcohol) and `score()` (soft ranking). The ML rankers will replace only `score()`.
+- Baseline score is a hand-written heuristic with 4 readable terms, each scaled to ~[0,1]: protein density, closeness to the per-meal calorie budget (daily target / 3, default 750), fiber bonus, added-sugar penalty. Goal changes the weights (lose leans on budget fit, gain on protein).
+- "Main dish" heuristic: skip stations whose name contains sides/treats/dessert/soup/bagel and anything under 250 kcal, so condiments and garnishes are never the meal.
+- Same dish is not suggested for two meals in one day when an alternative exists (dining halls repeat lunch/dinner menus).
+- Suggestions are deterministic (stable score + name tie-break), so the home page shows the same picks on every visit, as designed.
+- `meal_feedback`: one row per (user, item), thumbs up/down overwrites. This is the 1/0 label the rankers train on.
+- Each card shows *why* it was picked (protein, budget fit, fiber) — being explainable is the point of the baseline.
+- Verified in browser with real scraped data: filters hold for a vegetarian nut-allergy profile, dedupe works, a Like sticks after reload.
+
 ## 2026-09-09 — PR 4: Profile questionnaire
 
 - One `profiles` row per user: dietary pattern, allergens to avoid, pork/alcohol avoidance, goal, optional body metrics, and a free-text `taste_note` (later embedded by the Sentence Transformer for reranking).
