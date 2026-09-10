@@ -2,6 +2,16 @@
 
 Short record of choices so the project stays easy to learn. Newer items go at the top.
 
+## 2026-09-09 — PR 4: Profile questionnaire
+
+- One `profiles` row per user: dietary pattern, allergens to avoid, pork/alcohol avoidance, goal, optional body metrics, and a free-text `taste_note` (later embedded by the Sentence Transformer for reranking).
+- Calorie target = Mifflin-St Jeor BMR × activity multiplier, then −400 / +0 / +400 kcal for lose/maintain/gain. Computed on request, never stored, so it can't go stale when the profile changes.
+- Body metrics are all-or-nothing (validated server-side): the formula needs every input, so a half-filled block would silently produce a wrong target.
+- The wizard asks height/weight in ft-in/lbs (natural for US students) and converts to metric on save; the backend stays metric everywhere.
+- Onboarding is 5 small steps with big tap targets instead of one long form — each screen asks one question, which is faster to answer and less overwhelming.
+- Killed the create-next-app dark-mode CSS: screens are designed light-only and OS dark mode was rendering dark text on a black body.
+- Verified in browser: full wizard run, all-or-nothing guard blocks a partial body block, saved row in Postgres matches hand-computed conversions (5'10" -> 177.8 cm, 165 lb -> 74.8 kg, target 2335 kcal).
+
 ## 2026-09-09 — PR 3: Email/password auth with database sessions
 
 - Passwords are stored as bcrypt hashes (bcrypt salts automatically and is deliberately slow, which blunts brute force). Plain `bcrypt` package, no passlib wrapper.

@@ -21,7 +21,8 @@ export default function AuthForm({ mode }: { mode: "login" | "signup" }) {
       body: JSON.stringify({ email, password }),
     });
     if (resp.ok) {
-      router.push("/");
+      // New accounts go straight to the questionnaire.
+      router.push(mode === "signup" ? "/onboarding" : "/");
       router.refresh();
       return;
     }

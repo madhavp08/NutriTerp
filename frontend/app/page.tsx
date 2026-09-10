@@ -11,12 +11,19 @@ import { useEffect, useState } from "react";
 export default function Home() {
   const router = useRouter();
   const [email, setEmail] = useState<string | null>(null);
+  const [hasProfile, setHasProfile] = useState<boolean | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetch("/api/auth/me")
       .then((r) => (r.ok ? r.json() : null))
-      .then((body) => setEmail(body?.email ?? null))
+      .then(async (body) => {
+        setEmail(body?.email ?? null);
+        if (body?.email) {
+          const profile = await fetch("/api/profile").then((r) => r.json());
+          setHasProfile(profile.exists);
+        }
+      })
       .finally(() => setLoading(false));
   }, []);
 
@@ -42,6 +49,19 @@ export default function Home() {
           <p className="text-zinc-800">
             Logged in as <span className="font-semibold">{email}</span>
           </p>
+          {hasProfile === false && (
+            <Link
+              href="/onboarding"
+              className="rounded-lg bg-red-700 px-5 py-2.5 font-semibold text-white hover:bg-red-800"
+            >
+              Finish your 2-minute questionnaire
+            </Link>
+          )}
+          {hasProfile === true && (
+            <Link href="/onboarding" className="text-sm font-medium text-red-700 hover:underline">
+              Edit my preferences
+            </Link>
+          )}
           <button
             onClick={logout}
             className="rounded-lg border border-zinc-300 px-4 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-100"
