@@ -1,0 +1,55 @@
+# Scheduled menu scraping.
+#
+# - Monday 10:00 UTC (6am ET): full scrape of the next 7 days for all halls.
+# - Every day 11:00 UTC (7am ET): cheap fingerprint check; re-scrapes only
+#   halls/dates whose menu actually changed.
+#
+# Needs one repository secret: DATABASE_URL (Settings -> Secrets -> Actions).
+name: Scrape UMD menu
+
+on:
+  schedule:
+    - cron: "0 10 * * 1" # weekly full scrape, Mondays
+    - cron: "0 11 * * *" # daily change check
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "full or check"
+        default: "check"
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: backend/requirements.txt
+
+      - run: pip install -r backend/requirements.txt
+
+      # Weekly cron -> full. Daily cron -> check. Manual run -> whatever was picked.
+      - name: Decide mode
+        id: mode
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "mode=${{ inputs.mode }}" >> "$GITHUB_OUTPUT"
+          elif [ "${{ github.event.schedule }}" = "0 10 * * 1" ]; then
+            echo "mode=full" >> "$GITHUB_OUTPUT"
+          else
+            echo "mode=check" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Run scraper
+        working-directory: backend
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: python -m scraper.run ${{ steps.mode.outputs.mode }}
+
+      - name: Run parser tests
+        working-directory: backend
+        run: python -m pytest tests/ -q

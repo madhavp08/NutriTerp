@@ -9,3 +9,11 @@ psycopg[binary]==3.2.*
 # Settings loaded from environment / .env
 pydantic-settings==2.*
 python-dotenv==1.*
+
+# Scraper
+httpx==0.27.*
+beautifulsoup4==4.*
+lxml==5.*
+
+# Tests
+pytest==8.*
