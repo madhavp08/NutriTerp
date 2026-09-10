@@ -2,6 +2,17 @@
 
 Short record of choices so the project stays easy to learn. Newer items go at the top.
 
+## 2026-09-10 — PR 6: Logistic regression and XGBoost rankers
+
+- One feature function (`ml/features.py`) builds both training rows and serving rows. That makes training/serving skew impossible: the model cannot see a column that the API does not also compute.
+- Feature groups stay readable in a CSV: nutrition (+ protein/sugar per 100 kcal), cuisine keyword flags from the dish name, diet-icon flags, user goal + meal budget, and two interaction terms (budget_fit, over_budget). No global like-counts — those leak the current rating into the features.
+- Split by USER, not by row. Putting the same person's likes on both sides of the split would leak taste and inflate Precision@K.
+- Logistic regression is scaled so you can read coefficients ("protein_per_100kcal = +0.8"). XGBoost (small trees) can learn interactions the linear model cannot. The higher-AUC model is saved.
+- Precision@3 / Recall@3 are computed per test user by ranking THAT user's rated items — the same job the app does — not as a global classification accuracy.
+- Cold start: `ml/simulate` invents @synthetic.nutriterp users with known personas so you can train before real thumbs exist. Wipe them anytime.
+- The API keeps the heuristic as fallback and as the "why" text. The model only replaces the number used to pick a winner. No artifact => identical to PR 5.
+- Artifacts stay gitignored (`ml/artifacts/`, `data/processed/features.csv`). Retrain locally; do not commit binary models.
+
 ## 2026-09-09 — PR 5: Suggestions dashboard and feedback
 
 - Recommendation is two separated stages so each can evolve independently: `eligible()` (hard filters — diet, allergens via icon flags AND label text, pork/alcohol) and `score()` (soft ranking). The ML rankers will replace only `score()`.

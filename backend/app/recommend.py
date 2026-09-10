@@ -4,15 +4,16 @@ Two stages, deliberately separated:
 
 1. eligible(profile, item)  — HARD filters. A meal that violates the diet,
    an allergy, or a pork/alcohol rule is removed, never just down-ranked.
-2. score(profile, item)     — soft ranking of what survived. This baseline
-   is a hand-written heuristic; the ML rankers (logistic regression /
-   XGBoost) will replace exactly this function later, nothing else.
+2. rank(profile, item)      — soft ranking of what survived. Uses the
+   trained logistic-regression / XGBoost artifact when present; otherwise
+   the hand-written heuristic in score(). Hard filters never change.
 
 The same profile + same menu always produce the same suggestions, so the
 home page stays stable ("static") between visits.
 """
 
 from dataclasses import dataclass
+from pathlib import Path
 
 from .models import MenuItem, Profile
 
@@ -36,7 +37,11 @@ STATION_SKIP_MARKERS = ("sides", "treats", "dessert", "soup du jour", "bagel bar
 
 # Below this many calories an item is a condiment or garnish, not a meal.
 MIN_MEAL_CALORIES = 250
-DEFAULT_MEAL_BUDGET = 750  # kcal per meal when no calorie target is set
+
+# Trained ranker written by `python -m ml.train`. Missing = use the heuristic.
+RANKER_PATH = Path(__file__).resolve().parent.parent / "ml" / "artifacts" / "ranker.joblib"
+_ranker: dict | None = None
+_ranker_loaded = False
 
 
 def eligible(profile: Profile, item: MenuItem) -> bool:
@@ -66,9 +71,22 @@ def eligible(profile: Profile, item: MenuItem) -> bool:
     return True
 
 
-def meal_budget(profile: Profile, calorie_target: int | None) -> int:
-    """Rough kcal budget for one meal (a third of the daily target)."""
-    return round(calorie_target / 3) if calorie_target else DEFAULT_MEAL_BUDGET
+def get_ranker() -> dict | None:
+    """Load the trained model once. None means "use the heuristic"."""
+    global _ranker, _ranker_loaded
+    if not _ranker_loaded:
+        _ranker_loaded = True
+        if RANKER_PATH.exists():
+            import joblib
+            _ranker = joblib.load(RANKER_PATH)
+    return _ranker
+
+
+def reset_ranker_cache() -> None:
+    """Tests call this after pointing RANKER_PATH at a fake artifact."""
+    global _ranker, _ranker_loaded
+    _ranker = None
+    _ranker_loaded = False
 
 
 @dataclass
@@ -124,6 +142,25 @@ def score(profile: Profile, item: MenuItem, budget: int) -> Scored:
         + weights[3] * sugar_penalty
     )
     return Scored(score=total, reasons=reasons)
+
+
+def rank(profile: Profile, item: MenuItem, budget: int) -> Scored:
+    """Heuristic reasons, plus the trained model's P(like) when one exists.
+
+    The heuristic stays the fallback AND the explanation. The model only
+    replaces the numeric score used to pick a winner, so a missing artifact
+    never changes what the user sees.
+    """
+    heuristic = score(profile, item, budget)
+    ranker = get_ranker()
+    if ranker is None:
+        return heuristic
+    from ml.features import pair_features, to_frame
+    frame = to_frame([pair_features(profile, item)])
+    proba = float(ranker["model"].predict_proba(frame)[0, 1])
+    reasons = list(heuristic.reasons)
+    reasons.append("learned from past likes")
+    return Scored(score=proba, reasons=reasons)
 
 
 def is_main_dish(station: str, item: MenuItem) -> bool:

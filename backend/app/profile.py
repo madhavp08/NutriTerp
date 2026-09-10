@@ -33,6 +33,12 @@ ACTIVITY_MULTIPLIER = {
 }
 
 GOAL_ADJUSTMENT = {"lose": -400, "maintain": 0, "gain": +400}
+DEFAULT_MEAL_BUDGET = 750  # kcal per meal when no daily target is set
+
+
+def meal_budget(_profile: Profile, daily_target: int | None) -> int:
+    """Rough kcal budget for one meal (a third of the daily target)."""
+    return round(daily_target / 3) if daily_target else DEFAULT_MEAL_BUDGET
 
 
 class ProfileIn(BaseModel):

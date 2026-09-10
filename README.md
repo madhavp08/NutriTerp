@@ -15,7 +15,12 @@ decisions.md      Every design decision, short and readable
 
 ## Run it
 
-1. Copy `.env.example` to `.env` and fill in `DATABASE_URL` (Neon Postgres) and `SESSION_SECRET`.
+1. Copy `.env.example` to `.env` and fill in `DATABASE_URL` and `SESSION_SECRET`.
+
+   **Where to get `DATABASE_URL`:** sign in at
+   [console.neon.tech](https://console.neon.tech) → open the `nutriterp`
+   project → **Connect** → choose the **pooled** connection string → paste
+   it into `.env`. Neon requires `sslmode=require`. Never commit `.env`.
 2. Backend:
 
    ```bash
@@ -35,6 +40,20 @@ decisions.md      Every design decision, short and readable
    ```
 
    Open http://localhost:3000.
+
+## Train the rankers
+
+After a scrape (and some ratings, or synthetic ones):
+
+```bash
+cd backend
+source .venv/bin/activate
+python -m ml.simulate --wipe    # practice labels, emails @synthetic.nutriterp
+python -m ml.train              # prints AUC, P@3, R@3; writes ml/artifacts/
+```
+
+Restart the API so it picks up `ml/artifacts/ranker.joblib`. Without that
+file the home page still uses the hand-written heuristic.
 
 ## The ML, in one paragraph
 

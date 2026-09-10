@@ -1,7 +1,8 @@
 """Unit tests for hard filters and the baseline scorer (no HTTP, no DB)."""
 
 from app.models import MenuItem, Profile
-from app.recommend import eligible, is_main_dish, meal_budget, score
+from app.profile import meal_budget
+from app.recommend import eligible, is_main_dish, score
 
 
 def item(**kwargs) -> MenuItem:

@@ -22,8 +22,8 @@ from .models import (
     Profile,
     User,
 )
-from .profile import calorie_target
-from .recommend import eligible, is_main_dish, meal_budget, score
+from .profile import calorie_target, meal_budget
+from .recommend import eligible, is_main_dish, rank
 
 router = APIRouter(prefix="/api", tags=["suggestions"])
 
@@ -65,7 +65,7 @@ def suggestions(
                 continue
             if not eligible(profile, item):
                 continue
-            scored = score(profile, item, budget)
+            scored = rank(profile, item, budget)
             # Deterministic tie-break by name so suggestions never flicker.
             key = (scored.score, item.name)
             if fallback is None or key > fallback[0]:
