@@ -2,6 +2,18 @@
 
 Short record of choices so the project stays easy to learn. Newer items go at the top.
 
+## 2026-09-09 — PR 2: Scraper and menu schema
+
+- nutrition.umd.edu is a FoodPro site. One URL per hall/date (`/?locationNum=16|19|51&dtdate=M/D/YYYY`) lists all meals; each item links to `label.aspx?RecNumAndPort=...` with full nutrition facts, ingredients, and allergens. No JavaScript needed, so plain HTTP + BeautifulSoup is enough — no browser automation.
+- Parsing lives in `scraper/parse.py` with zero network or DB code, so it is unit-testable against saved HTML. If UMD redesigns, only this file breaks, and the tests say so first.
+- Four tables: `menu_items` (one row per recipe: nutrition + diet flags — the ML feature source), `menu_offerings` (recipe X at hall H, meal M, station S, date D — what gets ranked), `menu_fingerprints` (SHA-256 of a hall/day's offering list), `scrape_runs` (audit log of every run).
+- Nutrition label pages are fetched only for recipes never seen before. Recipes repeat constantly, so after the first scrape a weekly run is mostly 21 cheap list pages.
+- Daily "did it change?" check recomputes the fingerprint from list pages and re-scrapes only mismatched hall/dates. Weekly full scrape covers the next 7 days.
+- Scheduling is GitHub Actions cron (Mon 10:00 UTC full, daily 11:00 UTC check) instead of laptop cron, because a laptop is often asleep. Needs the `DATABASE_URL` repo secret.
+- Diet flags stored as one comma-separated string column instead of 16 boolean columns — easier to read in a SELECT, one line to extend, and code always goes through a `flags` set property.
+- Politeness: 0.5s delay between requests, 3 attempts with backoff, honest User-Agent. A failed scrape fails loudly and is recorded in `scrape_runs` rather than half-writing.
+- Tables are created with `Base.metadata.create_all` (no Alembic migrations yet) — fewer moving parts while the schema is young.
+
 ## 2026-09-09 — PR 1: Scaffold
 
 - Two folders: `backend/` (FastAPI + Python ML) and `frontend/` (Next.js). One repo so one PR can touch both.
