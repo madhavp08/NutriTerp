@@ -53,7 +53,9 @@ python -m ml.train              # prints AUC, P@3, R@3; writes ml/artifacts/
 ```
 
 Restart the API so it picks up `ml/artifacts/ranker.joblib`. Without that
-file the home page still uses the hand-written heuristic.
+file the home page still uses the hand-written heuristic. If the user
+filled in a taste note, a Sentence Transformer (MiniLM) then cosine-reranks
+the top 8 candidates toward dishes that sound like that note.
 
 ## The ML, in one paragraph
 

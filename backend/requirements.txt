@@ -24,6 +24,7 @@ pandas==3.*
 scikit-learn==1.*
 xgboost==3.*
 joblib==1.*
+sentence-transformers==3.*
 
 # Tests
 pytest==8.*

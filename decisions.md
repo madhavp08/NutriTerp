@@ -2,6 +2,14 @@
 
 Short record of choices so the project stays easy to learn. Newer items go at the top.
 
+## 2026-09-10 — PR 7: Sentence Transformer cosine rerank
+
+- Second stage only: the ranker still builds a shortlist of 8, then MiniLM (`all-MiniLM-L6-v2`) embeds the taste_note and each dish name. Final score = 75% min-max(ranker) + 25% cosine. Hard filters never change.
+- Min-max on the shortlist first, because the heuristic score lives around 0–5 and the XGBoost score is a 0–1 probability — cosine is also 0–1, so blending raw heuristic + cosine would ignore the note.
+- Encode is injectable. Unit tests never download the ~80 MB model; they pass tiny fake vectors. The real model loads once in process memory the first time a user with a taste_note hits /api/suggestions.
+- Embeddings are not stored in Postgres yet. Encoding 8 names is cheap after load. A later note can add a `embedding` column if this gets slow.
+- If taste_note is empty, rerank is a no-op and PR 6 behavior is unchanged.
+
 ## 2026-09-10 — PR 6: Logistic regression and XGBoost rankers
 
 - One feature function (`ml/features.py`) builds both training rows and serving rows. That makes training/serving skew impossible: the model cannot see a column that the API does not also compute.

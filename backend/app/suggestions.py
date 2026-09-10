@@ -22,6 +22,7 @@ from .models import (
     Profile,
     User,
 )
+from ml.rerank import choose
 from .profile import calorie_target, meal_budget
 from .recommend import eligible, is_main_dish, rank
 
@@ -56,8 +57,7 @@ def suggestions(
     result: dict[str, dict | None] = {}
     already_suggested: set[int] = set()
     for meal in MEALS:
-        best = None
-        fallback = None  # best including repeats, used only if needed
+        candidates = []
         for offering, item in rows:
             if offering.meal != meal:
                 continue
@@ -66,18 +66,12 @@ def suggestions(
             if not eligible(profile, item):
                 continue
             scored = rank(profile, item, budget)
-            # Deterministic tie-break by name so suggestions never flicker.
-            key = (scored.score, item.name)
-            if fallback is None or key > fallback[0]:
-                fallback = (key, offering, item, scored)
-            # Prefer not to repeat a dish already suggested today.
-            if item.id not in already_suggested and (best is None or key > best[0]):
-                best = (key, offering, item, scored)
-        best = best or fallback
-        if best is None:
+            candidates.append((scored, offering, item))
+        picked = choose(candidates, already_suggested, profile.taste_note)
+        if picked is None:
             result[meal] = None
             continue
-        _, offering, item, scored = best
+        scored, offering, item = picked
         already_suggested.add(item.id)
         result[meal] = {
             "menu_item_id": item.id,
