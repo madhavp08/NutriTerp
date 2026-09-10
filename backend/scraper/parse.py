@@ -145,13 +145,16 @@ def parse_label_page(html: str) -> ParsedLabel:
     if m:
         label.serving_size = m.group(1).strip()
 
-    m = re.search(r"INGREDIENTS:\s*(.+?)\s*(?:ALLERGENS:|The nutrient composition)", text)
-    if m:
-        label.ingredients = m.group(1).strip()
+    # `.*?` (not `.+?`): when the list after the header is empty, `.+?` cannot
+    # stop at the boundary phrase and swallows the page disclaimer and footer.
+    # Empty captures stay None instead of becoming "".
+    m = re.search(r"INGREDIENTS:\s*(.*?)\s*(?:ALLERGENS:|The nutrient composition)", text)
+    if m and m.group(1):
+        label.ingredients = m.group(1)
 
-    m = re.search(r"ALLERGENS:\s*(.+?)\s*(?:The nutrient composition|$)", text)
-    if m:
-        label.allergens = m.group(1).strip()
+    m = re.search(r"ALLERGENS:\s*(.*?)\s*(?:The nutrient composition|$)", text)
+    if m and m.group(1):
+        label.allergens = m.group(1)
 
     return label
 

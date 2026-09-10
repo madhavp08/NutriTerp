@@ -2,6 +2,12 @@
 
 Short record of choices so the project stays easy to learn. Newer items go at the top.
 
+## 2026-09-09 — PR 2 follow-up: empty-allergen parsing bug
+
+- Items with no allergens render "ALLERGENS:" directly followed by the site's legal disclaimer. The regex used `.+?` (one or more), which cannot match an empty list, so it captured the whole disclaimer + footer into the allergens column (512 rows).
+- Fix: `.*?` plus "keep None when the capture is empty". Same fix applied to ingredients, which had the identical latent bug. Regression test added with a synthetic empty-allergen label.
+- Lesson: verify scraped output in the database, not just parser unit tests — the fixtures never contained an allergen-free item.
+
 ## 2026-09-09 — PR 2: Scraper and menu schema
 
 - nutrition.umd.edu is a FoodPro site. One URL per hall/date (`/?locationNum=16|19|51&dtdate=M/D/YYYY`) lists all meals; each item links to `label.aspx?RecNumAndPort=...` with full nutrition facts, ingredients, and allergens. No JavaScript needed, so plain HTTP + BeautifulSoup is enough — no browser automation.

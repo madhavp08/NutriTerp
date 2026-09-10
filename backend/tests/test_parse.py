@@ -55,3 +55,18 @@ def test_parse_real_label_page():
 
 def test_empty_page_parses_to_nothing():
     assert parse_menu_page("<html><body></body></html>") == []
+
+
+def test_empty_allergen_list_stays_none():
+    # Real pages for allergen-free items read "ALLERGENS:" immediately
+    # followed by the legal disclaimer. That must not leak into the data.
+    html = (
+        "<html><body>Serving size 1 CUP Calories per serving 80 "
+        "INGREDIENTS: Apples, Water. ALLERGENS: "
+        "The nutrient composition of food may vary due to: genetic and "
+        "environmental variables. Footer junk here.</body></html>"
+    )
+    label = parse_label_page(html)
+    assert label.calories == 80
+    assert label.ingredients == "Apples, Water."
+    assert label.allergens is None
