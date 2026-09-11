@@ -39,7 +39,9 @@ decisions.md      Every design decision, short and readable
    npm run dev
    ```
 
-   Open http://localhost:3000.
+   Open http://localhost:3000. After login you get 9 picks (3 halls × 3
+   meals). Dislike swaps only that card. Log what you ate and drop a meal
+   photo — the calendar square turns green that day.
 
 ## Train the rankers
 

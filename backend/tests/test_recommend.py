@@ -88,6 +88,7 @@ def test_sides_and_tiny_items_are_not_mains():
     assert not is_main_dish("Treats", item(calories=400))
     assert not is_main_dish("Grill Works", item(calories=90))  # condiment-sized
     assert is_main_dish("Grill Works", item(calories=520))
+    assert not is_main_dish("Salad Bar", item(name="Olive Oil", calories=251))
 
 
 def test_meal_budget_third_of_target_or_default():

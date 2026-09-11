@@ -24,10 +24,17 @@ _model = None
 
 
 def get_model():
+    """Load MiniLM once. None if the optional package is not installed."""
     global _model
+    if _model is False:
+        return None
     if _model is None:
-        from sentence_transformers import SentenceTransformer
-        _model = SentenceTransformer(MODEL_NAME)
+        try:
+            from sentence_transformers import SentenceTransformer
+            _model = SentenceTransformer(MODEL_NAME)
+        except ImportError:
+            _model = False
+            return None
     return _model
 
 
@@ -57,7 +64,10 @@ def taste_similarities(note: str, texts: list[str], encode=None) -> list[float]:
     if not note.strip() or not texts:
         return [0.0] * len(texts)
     if encode is None:
-        encode = lambda xs: get_model().encode(xs, normalize_embeddings=True)
+        model = get_model()
+        if model is None:
+            return [0.0] * len(texts)
+        encode = lambda xs: model.encode(xs, normalize_embeddings=True)
     vectors = encode([note, *texts])
     return cosine_similarities(vectors[0], vectors[1:])
 

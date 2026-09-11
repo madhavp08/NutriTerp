@@ -2,6 +2,20 @@
 
 Short record of choices so the project stays easy to learn. Newer items go at the top.
 
+## 2026-09-11 — 9 recs, swap-on-dislike, diary, photo calendar
+
+- Home grid is 3 halls × breakfast/lunch/dinner = 9 cards. Each slot is ranked on its own hall+meal, so South Campus lunch does not steal Yahentamitsi breakfast.
+- Dedupe is per hall only. The same dish may show at two halls because the user is choosing *where* to eat.
+- Dislike writes the usual 1/0 label AND returns a replacement for that hall+meal only. The other eight cards stay put ("the whole meal does not have to change").
+- Disliked recipe ids are banned from future picks. Like does not swap anything.
+- `meal_logs` is the diary: name + calories copied at log time so a later scrape cannot rewrite history. Optional photo lives on disk under `backend/uploads/{user_id}/` with a random name; the DB stores only the filename.
+- Calendar green = at least one log that day has a photo. A typed calorie entry alone does not fill the square. Photos are checked by magic bytes (JPEG/PNG/WebP, 5 MB cap) and served only to the owner.
+- "I ate this" on a card and the free-text form both write the same table, so the calorie bar and the calendar share one source of truth.
+- Condiments (olive oil, vinaigrette, mayo, RTU sauces) are skipped as mains. The XGBoost ranker otherwise promoted 251 kcal olive oil because it looks "calorie dense."
+- If `sentence-transformers` is not installed, cosine rerank is a no-op instead of a 500. The nine cards still load.
+
+
+
 ## 2026-09-10 — PR 7: Sentence Transformer cosine rerank
 
 - Second stage only: the ranker still builds a shortlist of 8, then MiniLM (`all-MiniLM-L6-v2`) embeds the taste_note and each dish name. Final score = 75% min-max(ranker) + 25% cosine. Hard filters never change.

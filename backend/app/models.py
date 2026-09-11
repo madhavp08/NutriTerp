@@ -208,6 +208,33 @@ class MealFeedback(Base):
     )
 
 
+class MealLog(Base):
+    """One food the user actually ate (or photographed).
+
+    Calories are stored on the row (copied from the menu item at log time,
+    or typed in) so a later menu scrape cannot rewrite history. A photo
+    filename is optional; the calendar turns green when at least one log
+    that day has a photo.
+    """
+
+    __tablename__ = "meal_logs"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), index=True)
+    date: Mapped[datetime.date] = mapped_column(Date, index=True)
+    meal: Mapped[str] = mapped_column(String(16))  # breakfast / lunch / dinner / snack
+    hall_id: Mapped[int | None]
+    menu_item_id: Mapped[int | None] = mapped_column(ForeignKey("menu_items.id"))
+    name: Mapped[str] = mapped_column(String(255))
+    calories: Mapped[float | None] = mapped_column(Float)
+    protein_g: Mapped[float | None] = mapped_column(Float)
+    # Relative name under backend/uploads/{user_id}/ — never a client path.
+    photo_filename: Mapped[str | None] = mapped_column(String(80))
+    created_at: Mapped[datetime.datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
+
+
 class MenuFingerprint(Base):
     """SHA-256 of the sorted offering list for one hall on one date.
 

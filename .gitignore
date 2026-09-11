@@ -25,6 +25,9 @@ node_modules/
 out/
 frontend/.env*
 
+# Meal photos (served from backend/uploads/{user_id}/)
+backend/uploads/
+
 # OS / editor
 .DS_Store
 .idea/

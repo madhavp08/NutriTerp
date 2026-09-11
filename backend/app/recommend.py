@@ -34,6 +34,11 @@ ALLERGEN_TEXT_MARKERS: dict[str, tuple[str, ...]] = {
 
 # Stations that never contain a main dish worth suggesting on its own.
 STATION_SKIP_MARKERS = ("sides", "treats", "dessert", "soup du jour", "bagel bar")
+# Single-ingredient condiments the ranker otherwise loves (tiny, calorie-dense).
+NAME_SKIP_MARKERS = (
+    "olive oil", "canola oil", "vegetable oil", "vinaigrette",
+    "mayonnaise", "earth balance", "sauce (rtu)",
+)
 
 # Below this many calories an item is a condiment or garnish, not a meal.
 MIN_MEAL_CALORIES = 250
@@ -167,5 +172,8 @@ def is_main_dish(station: str, item: MenuItem) -> bool:
     """Heuristic: skip sides/treats stations and condiment-sized items."""
     station_lower = station.lower()
     if any(marker in station_lower for marker in STATION_SKIP_MARKERS):
+        return False
+    name_lower = item.name.lower()
+    if any(marker in name_lower for marker in NAME_SKIP_MARKERS):
         return False
     return (item.calories or 0) >= MIN_MEAL_CALORIES

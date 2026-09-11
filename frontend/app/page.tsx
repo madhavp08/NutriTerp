@@ -35,7 +35,7 @@ export default function Home() {
   // Logged in with a finished questionnaire: the real dashboard.
   if (email && hasProfile) {
     return (
-      <div className="mx-auto flex min-h-screen w-full max-w-4xl flex-col gap-8 px-4 py-8">
+      <div className="mx-auto flex min-h-screen w-full max-w-6xl flex-col gap-8 px-4 py-8">
         <header className="flex items-center justify-between">
           <h1 className="text-2xl font-bold tracking-tight text-zinc-900">
             Nutri<span className="text-red-700">Terp</span>

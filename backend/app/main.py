@@ -12,6 +12,7 @@ from sqlalchemy.orm import Session
 
 from .auth import router as auth_router
 from .db import Base, engine, get_session
+from .logs import router as logs_router
 from .profile import router as profile_router
 from .suggestions import router as suggestions_router
 
@@ -27,6 +28,7 @@ app = FastAPI(title="NutriTerp API", lifespan=lifespan)
 app.include_router(auth_router)
 app.include_router(profile_router)
 app.include_router(suggestions_router)
+app.include_router(logs_router)
 
 
 @app.get("/api/health")

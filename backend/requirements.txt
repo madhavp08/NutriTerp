@@ -26,6 +26,9 @@ xgboost==3.*
 joblib==1.*
 sentence-transformers==3.*
 
+# Multipart uploads (meal photos)
+python-multipart==0.0.*
+
 # Tests
 pytest==8.*
 httpx==0.27.*  # also used by FastAPI TestClient
